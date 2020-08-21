@@ -1,0 +1,9 @@
+{
+  "name": "ddns",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-rust": "^0.3.8"
+  }
+}
