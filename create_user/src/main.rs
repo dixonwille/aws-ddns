@@ -1,20 +1,30 @@
 use http::StatusCode;
-use lambda::{error::HandlerError, Context};
-use lambda_http::{lambda, IntoResponse, Request, RequestExt, Response};
+use lambda_http::{
+    handler,
+    lambda::{self, Context},
+    IntoResponse, Request, RequestExt, Response,
+};
 use serde_derive::Deserialize;
 use std::collections::HashSet;
 
+type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+
 #[tokio::main]
-async fn main() {
-    lambda!(create_user)
+async fn main() -> Result<(), Error> {
+    lambda::run(handler(create_user)).await?;
+    Ok(())
 }
 
-fn create_user(request: Request, _: Context) -> Result<impl IntoResponse, HandlerError> {
-    let req: Option<CreateUserRequest> = request.payload().unwrap_or_else(|_| None);
-    Ok(Response::builder()
-        .status(StatusCode::IM_A_TEAPOT)
-        .body("I'm a Teapot")
-        .expect("there was an issue creating the response"))
+async fn create_user(request: Request, _: Context) -> Result<impl IntoResponse, Error> {
+    let req: Option<CreateUserRequest> = request.payload()?;
+    let req = match req {
+        Some(r) => r,
+        None => return Err(Box::from("must supply a body to the request")),
+    };
+    Ok(Response::builder().status(StatusCode::OK).body(format!(
+        "Welcome, {}, your password will be {} and domains {:?}",
+        req.username, req.password, req.domains
+    ))?)
 }
 
 #[derive(Deserialize)]

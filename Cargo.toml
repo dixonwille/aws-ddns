@@ -1,2 +1,2 @@
 [workspace]
-members = ["create_user", "nic"]
+members = ["create_user", "nic", "ddns_core"]
