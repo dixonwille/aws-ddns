@@ -8,8 +8,7 @@ provider:
   tags:
     app: ddns
   environment:
-    TABLE_NAME: ${self:custom.tableName}
-    DYNAMODB_REGION: ${opt:region, 'us-east-1'}
+    USERS_TABLE_NAME: ${self:custom.tableName}
   endpointType: REGIONAL
   iamRoleStatements:
     - Effect: Allow

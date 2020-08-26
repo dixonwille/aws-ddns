@@ -7,7 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust-argon2 = "0.8.2"
 http = "0.2.1"
 base64 = "0.12.3"
 

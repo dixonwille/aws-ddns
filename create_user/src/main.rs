@@ -1,4 +1,7 @@
-use ddns_core::error::{LambdaError, ResponseError, ResponseErrors};
+use ddns_core::{
+    client::{Client, User},
+    error::{LambdaError, ResponseError, ResponseErrors},
+};
 use http::StatusCode;
 use lambda_http::{
     handler,
@@ -16,12 +19,25 @@ async fn main() -> Result<(), LambdaError> {
 
 async fn create_user(request: Request, _: Context) -> Result<impl IntoResponse, LambdaError> {
     match parse_request(request).map_err(ResponseError::from) {
-        Ok(req) => Ok(Response::builder()
-            .status(StatusCode::OK)
-            .body(Body::from(format!(
-                "Welcome, {}, your password will be {} and domains {:?}",
-                req.username, req.password, req.domains
-            )))?),
+        Ok(req) => {
+            let client = Client::default();
+            let resp = match client.get_user(&req.username).await {
+                Ok(_) => ResponseError::UserExists.into_response(),
+                Err(ResponseError::NotFound(_)) => {
+                    match User::new(&req.username, &req.password, req.domains.clone()) {
+                        Ok(user) => match client.put_user(user).await {
+                            Ok(_) => Response::builder()
+                                .status(StatusCode::CREATED)
+                                .body(Body::from(()))?,
+                            Err(e) => e.into_response(),
+                        },
+                        Err(e) => e.into_response(),
+                    }
+                }
+                Err(e) => e.into_response(),
+            };
+            Ok(resp)
+        }
         Err(e) => Ok(e.into_response()),
     }
 }

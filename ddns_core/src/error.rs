@@ -17,6 +17,11 @@ pub enum ResponseError {
     Base64Decode(base64::DecodeError),
     FromUtf8Error(std::string::FromUtf8Error),
     MultipleErrors(Vec<ResponseError>),
+    UserExists,
+
+    DbError(String),
+    NotFound(String),
+    Argon(String)
 }
 
 impl std::fmt::Display for ResponseError {
@@ -35,6 +40,10 @@ impl std::fmt::Display for ResponseError {
             ResponseError::FromUtf8Error(_) => write!(f, "could not convert bytes to utf8"),
             ResponseError::ParseError(_) => write!(f, "could not parse object"),
             ResponseError::MultipleErrors(_) => write!(f, "many errors have occured"),
+            ResponseError::UserExists => write!(f, "user already exist"),
+            ResponseError::DbError(_) => write!(f, "error occured in database"),
+            ResponseError::NotFound(_) => write!(f, "item was not found"),
+            ResponseError::Argon(_) => write!(f, "issue with hashing algorithm")
         }
     }
 }
@@ -65,6 +74,12 @@ impl From<std::string::FromUtf8Error> for ResponseError {
     }
 }
 
+impl From<argon2::Error> for ResponseError {
+    fn from(e: argon2::Error) -> Self {
+        ResponseError::Argon(format!("{}", e))
+    }
+}
+
 impl From<ResponseErrors> for ResponseError {
     fn from(es: ResponseErrors) -> Self {
         if es.inner.len() == 1 {
@@ -88,6 +103,10 @@ impl ResponseError {
             ResponseError::Base64Decode(_) => StatusCode::BAD_REQUEST,
             ResponseError::FromUtf8Error(_) => StatusCode::BAD_REQUEST,
             ResponseError::MultipleErrors(_) => StatusCode::BAD_REQUEST,
+            ResponseError::UserExists => StatusCode::BAD_REQUEST,
+            ResponseError::DbError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ResponseError::NotFound(_) => StatusCode::NOT_FOUND,
+            ResponseError::Argon(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
     fn info(&self) -> Option<ResponseErrorInfo> {
@@ -107,6 +126,10 @@ impl ResponseError {
             ResponseError::Base64Decode(e) => Some(ResponseErrorInfo::from(format!("{}", e))),
             ResponseError::FromUtf8Error(e) => Some(ResponseErrorInfo::from(format!("{}", e))),
             ResponseError::MultipleErrors(e) => Some(ResponseErrorInfo::from(e)),
+            ResponseError::UserExists => None,
+            ResponseError::DbError(_) => None,
+            ResponseError::NotFound(_) => None,
+            ResponseError::Argon(_) => None,
         }
     }
     fn as_json(&self) -> ResponseErrorJson {
@@ -120,6 +143,7 @@ impl ResponseError {
 #[derive(Serialize)]
 struct ResponseErrorJson {
     message: String,
+    #[serde(skip_serializing_if="Option::is_none")]
     info: Option<ResponseErrorInfo>,
 }
 
