@@ -9,3 +9,12 @@ edition = "2018"
 [dependencies]
 http = "0.2.1"
 base64 = "0.12.3"
+serde_json = "1.0.57"
+
+[dependencies.lambda_http]
+git = "https://github.com/awslabs/aws-lambda-rust-runtime"
+branch = "master"
+
+[dependencies.serde]
+version = "1.0.115"
+features = ["derive"]
