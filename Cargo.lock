@@ -109,9 +109,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "bytes"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "serde 1.0.115 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "cc"
@@ -215,6 +212,7 @@ dependencies = [
  "rand_chacha 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusoto_core 0.45.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusoto_dynamodb 0.45.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rusoto_route53 0.45.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-argon2 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.115 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.57 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -716,9 +714,6 @@ dependencies = [
  "ddns_core 0.1.0",
  "http 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lambda_http 0.2.0-beta.1 (git+https://github.com/awslabs/aws-lambda-rust-runtime)",
- "rusoto_core 0.45.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rusoto_dynamodb 0.45.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rusoto_route53 0.45.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

@@ -1,4 +1,7 @@
-use ddns_core::error::{LambdaError, ResponseError, ResponseErrors};
+use ddns_core::{
+    client::Client,
+    error::{LambdaError, ResponseError, ResponseErrors},
+};
 use http::{
     header::{HeaderMap, HeaderValue},
     StatusCode,
@@ -18,23 +21,44 @@ async fn main() -> Result<(), LambdaError> {
 
 async fn nic(request: Request, _: Context) -> Result<impl IntoResponse, LambdaError> {
     match parse_request(request).map_err(ResponseError::from) {
-        Ok(req) => Ok(Response::builder()
-            .status(StatusCode::OK)
-            .body(Body::from(format!(
-                "Will update {:?} with {:?} if {:?} and {:?}/{:?} are valid",
-                req.hostnames, req.ip, req.user_agent, req.username, req.password
-            )))?),
+        Ok(req) => {
+            let client = Client::default();
+            match client
+                .validate_user(req.username, req.password, req.user_agent, &req.hostnames)
+                .await
+            {
+                Ok(_) => match client.update_hostnames(&req.hostnames, &req.ip).await {
+                    Ok(_) => Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .header("Content-Type", "text/plain")
+                        .body(Body::from("OK"))?),
+                    Err(e) => Ok(e.into_response()),
+                },
+                Err(e) => Ok(e.into_response()),
+            }
+        }
         Err(e) => Ok(e.into_response()),
     }
 }
 
-#[derive(Default)]
 struct NicRequest {
     hostnames: Vec<String>,
-    ip: String,
+    ip: Ipv4Addr,
     user_agent: String,
     username: String,
     password: String,
+}
+
+impl Default for NicRequest {
+    fn default() -> Self {
+        NicRequest {
+            hostnames: Vec::new(),
+            ip: Ipv4Addr::new(127, 0, 0, 1),
+            user_agent: String::new(),
+            username: String::new(),
+            password: String::new(),
+        }
+    }
 }
 
 fn parse_request(request: Request) -> Result<NicRequest, ResponseErrors> {
@@ -98,15 +122,17 @@ fn parse_request(request: Request) -> Result<NicRequest, ResponseErrors> {
 
     match queries.get("myip") {
         Some(i) => {
-            req.ip = {
-                if Ipv4Addr::from_str(i).is_err() {
+            match Ipv4Addr::from_str(i) {
+                Ok(i) => {
+                    req.ip = i;
+                }
+                Err(_) => {
                     errs.add(ResponseError::InvalidQuery(
                         "myip".into(),
                         "not a valid IPv4 address".into(),
                     ));
                 }
-                i.into()
-            }
+            };
         }
         None => errs.add(ResponseError::MissingQuery("myip".into())),
     };

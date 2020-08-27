@@ -18,10 +18,13 @@ pub enum ResponseError {
     FromUtf8Error(std::string::FromUtf8Error),
     MultipleErrors(Vec<ResponseError>),
     UserExists,
+    InvalidCredentials,
+    HostnameValidation(String),
 
     DbError(String),
+    Route53Error(String),
     NotFound(String),
-    Argon(String)
+    Argon(String),
 }
 
 impl std::fmt::Display for ResponseError {
@@ -41,9 +44,12 @@ impl std::fmt::Display for ResponseError {
             ResponseError::ParseError(_) => write!(f, "could not parse object"),
             ResponseError::MultipleErrors(_) => write!(f, "many errors have occured"),
             ResponseError::UserExists => write!(f, "user already exist"),
+            ResponseError::InvalidCredentials => write!(f, "credentials are not valid"),
+            ResponseError::HostnameValidation(_) => write!(f, "not authorized to update hostname"),
             ResponseError::DbError(_) => write!(f, "error occured in database"),
+            ResponseError::Route53Error(_) => write!(f, "error occured in route53"),
             ResponseError::NotFound(_) => write!(f, "item was not found"),
-            ResponseError::Argon(_) => write!(f, "issue with hashing algorithm")
+            ResponseError::Argon(_) => write!(f, "issue with hashing algorithm"),
         }
     }
 }
@@ -104,7 +110,10 @@ impl ResponseError {
             ResponseError::FromUtf8Error(_) => StatusCode::BAD_REQUEST,
             ResponseError::MultipleErrors(_) => StatusCode::BAD_REQUEST,
             ResponseError::UserExists => StatusCode::BAD_REQUEST,
+            ResponseError::InvalidCredentials => StatusCode::UNAUTHORIZED,
+            ResponseError::HostnameValidation(_) => StatusCode::UNAUTHORIZED,
             ResponseError::DbError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ResponseError::Route53Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ResponseError::NotFound(_) => StatusCode::NOT_FOUND,
             ResponseError::Argon(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -127,7 +136,10 @@ impl ResponseError {
             ResponseError::FromUtf8Error(e) => Some(ResponseErrorInfo::from(format!("{}", e))),
             ResponseError::MultipleErrors(e) => Some(ResponseErrorInfo::from(e)),
             ResponseError::UserExists => None,
+            ResponseError::InvalidCredentials => None,
+            ResponseError::HostnameValidation(h) => Some(ResponseErrorInfo::from(h)),
             ResponseError::DbError(_) => None,
+            ResponseError::Route53Error(_) => None,
             ResponseError::NotFound(_) => None,
             ResponseError::Argon(_) => None,
         }
@@ -143,7 +155,7 @@ impl ResponseError {
 #[derive(Serialize)]
 struct ResponseErrorJson {
     message: String,
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     info: Option<ResponseErrorInfo>,
 }
 

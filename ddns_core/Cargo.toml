@@ -29,7 +29,12 @@ features = ["rustls", "encoding"]
 [dependencies.rusoto_dynamodb]
 version = "0.45.0"
 default-features = false
-features = ["rustls", "serialize_structs", "deserialize_structs"]
+features = ["rustls"]
+
+[dependencies.rusoto_route53]
+version = "0.45.0"
+default-features = false
+features = ["rustls"]
 
 [dependencies.rust-argon2]
 version = "0.8.2"

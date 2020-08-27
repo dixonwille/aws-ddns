@@ -10,21 +10,6 @@ edition = "2018"
 http = "0.2.1"
 base64 = "0.12.3"
 
-[dependencies.rusoto_core]
-version = "0.45.0"
-default-features = false
-features = ["rustls", "encoding"]
-
-[dependencies.rusoto_dynamodb]
-version = "0.45.0"
-default-features = false
-features = ["rustls"]
-
-[dependencies.rusoto_route53]
-version = "0.45.0"
-default-features = false
-features = ["rustls"]
-
 [dependencies.tokio]
 version = "0.2.22"
 features = ["macros"]
