@@ -11,7 +11,7 @@ http = "0.2.1"
 base64 = "0.12.3"
 
 [dependencies.tokio]
-version = "0.2.22"
+version = "1.18.5"
 features = ["macros"]
 
 [dependencies.lambda_http]
