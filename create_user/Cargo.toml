@@ -10,7 +10,7 @@ edition = "2018"
 http = "0.2.1"
 
 [dependencies.tokio]
-version = "1.18.5"
+version = "1.48.0"
 features = ["macros"]
 
 [dependencies.lambda_http]
